@@ -28,11 +28,10 @@ async def log_container_info(log_data: LogInfo):
     print("로깅 시작...")
     try:
         logging_sql = """
-        INSERT INTO container_log
-        (container_id, concat_flag, challenge_id, user_id, user_ip, created_at)
+        INSERT INTO container_log 
+        (container_id, concat_flag, challenge_id, user_id, user_ip, created_at) 
         VALUES (%s, %s, %s, %s, %s, %s)
         """
-
         created_date = datetime.now().strftime("%Y-%m-%d")
 
         values = (
@@ -72,20 +71,19 @@ async def container_logging(background_tasks: BackgroundTasks):
         row = cursor.fetchone()
         if not row:
             return {"status": "error", "message": "컨테이너 정보를 찾을 수 없습니다."}
-
         container_id = row[0]  # container_id 컬럼 인덱스
         challenge_id = row[1]  # challenge_id 컬럼 인덱스
         user_id = row[3]       # user_id 컬럼 인덱스
-
+        
         print(f"데이터 조회 결과: {row}")
         print(f"사용자 ID: {user_id}")
-
+        
         user_ip = "127.0.0.1"
         created_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-
+        
         concat_str = str(container_id) + str(dict_flag[challenge_id])
         hashing_flag = hashlib.sha256(concat_str.encode()).hexdigest()
-
+        
         log_data = LogInfo(
             container_id=container_id,
             concat_flag=hashing_flag,
@@ -97,13 +95,12 @@ async def container_logging(background_tasks: BackgroundTasks):
 
         print(f"로깅 데이터: {log_data}")
 
-        # 디버깅을 위해 직접 호출
         #await log_container_info(log_data)
         # 나중에 다시 백그라운드로 변경
         background_tasks.add_task(log_container_info, log_data)
 
         return {"status": "success", "message": "컨테이너 로깅이 처리되었습니다."}
-
+    
     except Exception as e:
         print(f"전체 프로세스 오류: {str(e)}")
         return {"status": "error", "message": f"오류 발생: {str(e)}"}
